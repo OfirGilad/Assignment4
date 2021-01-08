@@ -140,11 +140,7 @@ class _Repository:
 
     def print_to_output(self, output):
         with open(output, "a") as output_file:
-            output_file.write(str(self._vaccines.total_inventory))
-            output_file.write(",")
-            output_file.write(str(self._clinics.total_demand))
-            output_file.write(",")
-            output_file.write(str(self._logistics.total_received))
-            output_file.write(",")
-            output_file.write(str(self._logistics.total_sent))
-            output_file.write("\n")
+            output_file.write(str(self._vaccines.total_inventory) + ",")
+            output_file.write(str(self._clinics.total_demand) + ",")
+            output_file.write(str(self._logistics.total_received) + ",")
+            output_file.write(str(self._logistics.total_sent) + "\n")
