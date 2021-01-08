@@ -10,7 +10,7 @@ class _Vaccines:
         self._total_inventory = 0
 
     def insert(self, vaccine):
-        self._total_inventory = self._total_inventory + vaccine.quantity
+        self._total_inventory = self._total_inventory + int(vaccine.quantity)
         
         self._conn.execute("""
             INSERT INTO vaccines (id, date, supplier, quantity) VALUES (?, ?, ?, ?)
@@ -93,7 +93,7 @@ class _Clinics:
         self._total_demand = 0
 
     def insert(self, clinic):
-        self._total_demand = self._total_demand + clinic.demand
+        self._total_demand = self._total_demand + int(clinic.demand)
 
         self._conn.execute("""
             INSERT INTO clinics (id, location, demand, logistic) VALUES (?, ?, ?, ?)
@@ -110,7 +110,7 @@ class _Clinics:
     def find_by_location(self, clinic_location):
         c = self._conn.cursor()
         c.execute("""
-            SELECT id, location, demand, logistic FROM clinics WHERE location = ?
+            SELECT id, location, demand, logistic FROM clinics WHERE location = ? 
             """, [clinic_location])
 
         return Clinic(*c.fetchone())
@@ -136,8 +136,8 @@ class _Logistics:
         self._total_received = 0
 
     def insert(self, logistic):
-        self._total_sent = self._total_sent + logistic.count_sent
-        self._total_received = self._total_received + logistic.count_received
+        self._total_sent = self._total_sent + int(logistic.count_sent)
+        self._total_received = self._total_received + int(logistic.count_received)
 
         self._conn.execute("""
             INSERT INTO logistics (id, name, count_sent, count_received) VALUES (?, ?, ?, ?)

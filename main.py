@@ -1,12 +1,11 @@
-import sqlite3
 import os
-import atexit
 import sys
+import atexit
 
 from Repository import _Repository
 
-# is_database_exist = os.path.isfile('database.db')
-# database_sars_cov_2_conn = sqlite3.connect('database.db')
+# is_database_exist = os.path.isfile('database1.db')
+# database_sars_cov_2_conn = sqlite3.connect('database1.db')
 # database_cursor = database_sars_cov_2_conn.cursor()
 #
 #
@@ -53,5 +52,5 @@ def main(args):
 
 
 if __name__ == '__main__':
-    print_hi('PyCharm')
-#   main(system.argv)
+#    print_hi('PyCharm')
+    main(sys.argv)
