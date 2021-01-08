@@ -23,6 +23,23 @@ class _Vaccines:
             """, [vaccine_id])
 
         return Vaccine(*c.fetchone())
+
+    def update_quantity(self, vaccine_quantity_old_value, vaccine_quantity_new_value, vaccine_id):
+        quantity_to_add = vaccine_quantity_new_value - vaccine_quantity_old_value
+        self._total_inventory = self._total_inventory + quantity_to_add
+
+        c = self._conn.cursor()
+        c.execute("""
+            UPDATE vaccines SET quantity = (?) WHERE id = (?)
+            """, [vaccine_quantity_new_value, vaccine_id])
+
+    def find_by_supplier_id(self, vaccine_supplier):
+        c = self._conn.cursor()
+        c.execute("""
+            SELECT id, date, supplier, quantity FROM vaccines WHERE supplier = ?
+            """, [vaccine_supplier])
+
+        return Vaccine(*c.fetchone())
     
     def delete(self, vaccine_id, vaccine_quantity):
         self._total_inventory = self._total_inventory - vaccine_quantity
@@ -58,6 +75,14 @@ class _Suppliers:
         c.execute("""
                     SELECT id, name, logistic FROM suppliers WHERE name = ?
                     """, [supplier_name])
+
+        return Supplier(*c.fetchone())
+
+    def find_by_logistic(self, supplier_logistic):
+        c = self._conn.cursor()
+        c.execute("""
+                    SELECT id, name, logistic FROM suppliers WHERE logistic = ?
+                    """, [supplier_logistic])
 
         return Supplier(*c.fetchone())
 

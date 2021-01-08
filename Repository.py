@@ -118,6 +118,7 @@ class _Repository:
                     self.receive_shipment_order(text_line, output)
                 else:
                     self.send_shipment_order(text_line, output)
+        self._close()
 
     def receive_shipment_order(self, order_line, output):
         name = order_line[0]
@@ -140,6 +141,15 @@ class _Repository:
         logistic = self._logistics.find(clinic.logistic)
         new_count_sent = logistic.count_sent + amount
         self._logistics.update_count_sent(logistic.count_sent, new_count_sent, logistic.id)
+        supplier = self._suppliers.find_by_logistic(logistic.id)
+        while amount > 0:
+            next_vaccine = self._vaccines.find_by_supplier_id(supplier.id)
+            if amount >= next_vaccine.quantity:
+                self._vaccines.delete(next_vaccine.id, next_vaccine.quantity)
+            else:
+                new_quantity = next_vaccine.quantity - amount
+                self._vaccines.update_quantity(next_vaccine.id, next_vaccine.quantity, new_quantity)
+            amount = amount - next_vaccine.quantity
         self.print_to_output(output)
 
     def print_to_output(self, output):
