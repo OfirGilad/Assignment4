@@ -6,17 +6,19 @@ from Dto import Logistic
 from Dto import Supplier
 from Dto import Clinic
 from Dto import Vaccine
+from datetime import datetime
 import sqlite3
 import atexit
 
 
 class _Repository:
     def __init__(self, database_sars_cov_2_conn):
-        self._conn = sqlite3.connect(database_sars_cov_2_conn )
+        self._conn = sqlite3.connect(database_sars_cov_2_conn)
         self.logistics = _Logistics(self._conn)
         self.suppliers = _Suppliers(self._conn)
         self.clinics = _Clinics(self._conn)
         self.vaccines = _Vaccines(self._conn)
+        self.next_vaccine_index = 1
 
     def _close(self):
         self._conn.commit()
@@ -94,6 +96,7 @@ class _Repository:
                     temp = Vaccine(text_line[0], text_line[1], text_line[2], text_line[3])
                     self.vaccines.insert(temp)
                     vaccines_length = vaccines_length - 1
+                    self.next_vaccine_index = self.next_vaccine_index + 1
                 elif suppliers_length > 0:
                     temp = Supplier(text_line[0], text_line[1], text_line[2])
                     self.suppliers.insert(temp)
@@ -106,3 +109,33 @@ class _Repository:
                     temp = Logistic(text_line[0], text_line[1], text_line[2], text_line[3])
                     self.logistics.insert(temp)
                     logistics_length = logistics_length - 1
+
+    def execute_orders(self, orders, output):
+        with open(orders) as input_file:
+            for line in input_file:
+                text_line = line.split(",")
+                if len(text_line) == 3:
+                    self.receive_shipment_order(text_line, output)
+                else:
+                    self.send_shipment_order(text_line, output)
+
+    def receive_shipment_order(self, order_line, output):
+        name = order_line[0]
+        amount = int(order_line[1])
+        date = datetime.strftime(order_line[2], '%Y-%m-%d')
+        supplier = self.suppliers.find_by_name(name)
+        vaccine_to_insert = Vaccine(self.next_vaccine_index, date, supplier.id, amount)
+        self.vaccines.insert(vaccine_to_insert)
+        logistic = self.logistics.find(supplier.logistic)
+        new_count_received = logistic.count_received + amount
+        self.logistics.update_count_received(new_count_received, logistic.id)
+
+    def send_shipment_order(self, order_line, output):
+        location = order_line[0]
+        amount = int(order_line[1])
+        clinic = self.clinics.find_by_location(location)
+        new_demand = clinic.demand - amount
+        self.clinics.update_demand(new_demand, clinic.id)
+        logistic = self.logistics.find(clinic.logistic)
+        new_count_sent = logistic.count_sent + amount
+        self.logistics.update_count_sent(new_count_sent, logistic.id)

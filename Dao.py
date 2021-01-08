@@ -39,6 +39,14 @@ class _Suppliers:
 
         return Supplier(*c.fetchone())
 
+    def find_by_name(self, supplier_name):
+        c = self._conn.cursor()
+        c.execute("""
+                    SELECT id, name, logistic FROM suppliers WHERE name = ?
+                    """, [supplier_name])
+
+        return Supplier(*c.fetchone())
+
 
 class _Clinics:
     def __init__(self, conn):
@@ -57,6 +65,20 @@ class _Clinics:
 
         return Clinic(*c.fetchone())
 
+    def find_by_location(self, clinic_location):
+        c = self._conn.cursor()
+        c.execute("""
+            SELECT id, location, demand, logistic FROM clinics WHERE location = ?
+            """, [clinic_location])
+
+        return Clinic(*c.fetchone())
+
+    def update_demand(self, clinic_demand, clinic_id):
+        c = self._conn.cursor()
+        c.execute("""
+            UPDATE clinics SET demand = (?) WHERE id = (?)
+            """, [clinic_demand, clinic_id])
+
 
 class _Logistics:
     def __init__(self, conn):
@@ -74,3 +96,15 @@ class _Logistics:
             """, [logistic_id])
 
         return Logistic(*c.fetchone())
+
+    def update_count_sent(self, logistic_count_sent, logistic_id):
+        c = self._conn.cursor()
+        c.execute("""
+            UPDATE logistics SET count_sent = (?) WHERE id = (?)
+            """, [logistic_count_sent, logistic_id])
+
+    def update_count_received(self, logistic_count_received, logistic_id):
+        c = self._conn.cursor()
+        c.execute("""
+            UPDATE logistics SET count_received = (?) WHERE id = (?)
+            """, [logistic_count_received, logistic_id])
