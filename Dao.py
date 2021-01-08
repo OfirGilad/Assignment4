@@ -24,7 +24,7 @@ class _Vaccines:
 
         return Vaccine(*c.fetchone())
 
-    def update_quantity(self, vaccine_quantity_old_value, vaccine_quantity_new_value, vaccine_id):
+    def update_quantity(self, vaccine_id, vaccine_quantity_old_value, vaccine_quantity_new_value):
         quantity_to_add = vaccine_quantity_new_value - vaccine_quantity_old_value
         self._total_inventory = self._total_inventory + quantity_to_add
 
@@ -36,8 +36,8 @@ class _Vaccines:
     def find_by_supplier_id(self, vaccine_supplier):
         c = self._conn.cursor()
         c.execute("""
-            SELECT id, date, supplier, quantity FROM vaccines WHERE supplier = ?
-            """, [vaccine_supplier])
+            SELECT * FROM vaccines
+            """)
 
         return Vaccine(*c.fetchone())
     

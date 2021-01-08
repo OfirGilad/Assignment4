@@ -6,9 +6,7 @@ from Dto import Logistic
 from Dto import Supplier
 from Dto import Clinic
 from Dto import Vaccine
-from datetime import datetime
 import sqlite3
-import atexit
 
 
 class _Repository:
@@ -20,7 +18,7 @@ class _Repository:
         self._vaccines = _Vaccines(self._conn)
         self._next_vaccine_index = 1
 
-    def _close(self):
+    def close(self):
         self._conn.commit()
         self._conn.close()
 
@@ -53,33 +51,20 @@ class _Repository:
             quantity INTEGER NOT NULL
         );
         """)
-#        self._conn.execute("""
-#        CREATE TABLE logistics (
-#            id INTEGER PRIMARY KEY,
-#            name STRING NOT NULL,
-#            count_sent INTEGER NOT NULL,
-#            count_received INTEGER NOT NULL
-#        )""")
-#        self._conn.execute("""
-#        CREATE TABLE suppliers (
-#            id INTEGER PRIMARY KEY,
-#            name STRING NOT NULL,
-#            logistic INTEGER REFERENCES logistics(id)
-#        )""")
-#        self._conn.execute("""
-#        CREATE TABLE clinics (
-#            id INTEGER PRIMARY KEY,
-#            location STRING NOT NULL,
-#            demand INTEGER NOT NULL,
-#            logistic INTEGER REFERENCES logistics(id)
-#        )""")
-#        self._conn.execute("""
-#        CREATE TABLE vaccines (
-#            id INTEGER PRIMARY KEY,
-#            date DATE NOT NULL,
-#            supplier INTEGER REFERENCES suppliers(id),
-#            quantity INTEGER NOT NULL
-#        )""")
+
+    def print_all(self):
+        print("vaccines")
+        self.print_table(self._conn.execute("SELECT * FROM vaccines"))
+        print("suppliers")
+        self.print_table(self._conn.execute("SELECT * FROM suppliers"))
+        print("clinics")
+        self.print_table(self._conn.execute("SELECT * FROM clinics"))
+        print("logistics")
+        self.print_table(self._conn.execute("SELECT * FROM logistics"))
+
+    def print_table(self, list_of_elements):
+        for element in list_of_elements:
+            print(element)
 
     def config_decode(self, config):
         is_first_line = True
@@ -118,14 +103,15 @@ class _Repository:
                     self.receive_shipment_order(text_line, output)
                 else:
                     self.send_shipment_order(text_line, output)
-        self._close()
 
     def receive_shipment_order(self, order_line, output):
         name = order_line[0]
         amount = int(order_line[1])
-        date = datetime.strftime(order_line[2], '%Y-%m-%d')
+        length = len(order_line[2])
+        date = order_line[2][0:length - 1]
         supplier = self._suppliers.find_by_name(name)
         vaccine_to_insert = Vaccine(self._next_vaccine_index, date, supplier.id, amount)
+        self._next_vaccine_index = self._next_vaccine_index + 1
         self._vaccines.insert(vaccine_to_insert)
         logistic = self._logistics.find(supplier.logistic)
         new_count_received = logistic.count_received + amount
@@ -153,8 +139,12 @@ class _Repository:
         self.print_to_output(output)
 
     def print_to_output(self, output):
-        with open(output) as output_file:
-            output_file.write(self._vaccines.total_inventory + ",")
-            output_file.write(self._clinics.total_demand + ",")
-            output_file.write(self._logistics.total_received + ",")
-            output_file.write(self._logistics.total_sent + "\n")
+        with open(output, "a") as output_file:
+            output_file.write(str(self._vaccines.total_inventory))
+            output_file.write(",")
+            output_file.write(str(self._clinics.total_demand))
+            output_file.write(",")
+            output_file.write(str(self._logistics.total_received))
+            output_file.write(",")
+            output_file.write(str(self._logistics.total_sent))
+            output_file.write("\n")
