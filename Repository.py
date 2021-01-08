@@ -14,11 +14,11 @@ import atexit
 class _Repository:
     def __init__(self, database_sars_cov_2_conn):
         self._conn = sqlite3.connect(database_sars_cov_2_conn)
-        self.logistics = _Logistics(self._conn)
-        self.suppliers = _Suppliers(self._conn)
-        self.clinics = _Clinics(self._conn)
-        self.vaccines = _Vaccines(self._conn)
-        self.next_vaccine_index = 1
+        self._logistics = _Logistics(self._conn)
+        self._suppliers = _Suppliers(self._conn)
+        self._clinics = _Clinics(self._conn)
+        self._vaccines = _Vaccines(self._conn)
+        self._next_vaccine_index = 1
 
     def _close(self):
         self._conn.commit()
@@ -94,20 +94,20 @@ class _Repository:
                     is_first_line = False
                 elif vaccines_length > 0:
                     temp = Vaccine(text_line[0], text_line[1], text_line[2], text_line[3])
-                    self.vaccines.insert(temp)
+                    self._vaccines.insert(temp)
                     vaccines_length = vaccines_length - 1
-                    self.next_vaccine_index = self.next_vaccine_index + 1
+                    self._next_vaccine_index = self._next_vaccine_index + 1
                 elif suppliers_length > 0:
                     temp = Supplier(text_line[0], text_line[1], text_line[2])
-                    self.suppliers.insert(temp)
+                    self._suppliers.insert(temp)
                     suppliers_length = suppliers_length - 1
                 elif clinics_length > 0:
                     temp = Clinic(text_line[0], text_line[1], text_line[2], text_line[3])
-                    self.clinics.insert(temp)
+                    self._clinics.insert(temp)
                     clinics_length = clinics_length - 1
                 else:
                     temp = Logistic(text_line[0], text_line[1], text_line[2], text_line[3])
-                    self.logistics.insert(temp)
+                    self._logistics.insert(temp)
                     logistics_length = logistics_length - 1
 
     def execute_orders(self, orders, output):
@@ -123,19 +123,28 @@ class _Repository:
         name = order_line[0]
         amount = int(order_line[1])
         date = datetime.strftime(order_line[2], '%Y-%m-%d')
-        supplier = self.suppliers.find_by_name(name)
-        vaccine_to_insert = Vaccine(self.next_vaccine_index, date, supplier.id, amount)
-        self.vaccines.insert(vaccine_to_insert)
-        logistic = self.logistics.find(supplier.logistic)
+        supplier = self._suppliers.find_by_name(name)
+        vaccine_to_insert = Vaccine(self._next_vaccine_index, date, supplier.id, amount)
+        self._vaccines.insert(vaccine_to_insert)
+        logistic = self._logistics.find(supplier.logistic)
         new_count_received = logistic.count_received + amount
-        self.logistics.update_count_received(new_count_received, logistic.id)
+        self._logistics.update_count_received(logistic.count_received, new_count_received, logistic.id)
+        self.print_to_output(output)
 
     def send_shipment_order(self, order_line, output):
         location = order_line[0]
         amount = int(order_line[1])
-        clinic = self.clinics.find_by_location(location)
+        clinic = self._clinics.find_by_location(location)
         new_demand = clinic.demand - amount
-        self.clinics.update_demand(new_demand, clinic.id)
-        logistic = self.logistics.find(clinic.logistic)
+        self._clinics.update_demand(clinic.demand, new_demand, clinic.id)
+        logistic = self._logistics.find(clinic.logistic)
         new_count_sent = logistic.count_sent + amount
-        self.logistics.update_count_sent(new_count_sent, logistic.id)
+        self._logistics.update_count_sent(logistic.count_sent, new_count_sent, logistic.id)
+        self.print_to_output(output)
+
+    def print_to_output(self, output):
+        with open(output) as output_file:
+            output_file.write(self._vaccines.total_inventory + ",")
+            output_file.write(self._clinics.total_demand + ",")
+            output_file.write(self._logistics.total_received + ",")
+            output_file.write(self._logistics.total_sent + "\n")
