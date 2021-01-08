@@ -11,11 +11,11 @@ database_cursor = database_SARS_CoV_2.cursor()
 def tables_creation():
     with database_SARS_CoV_2:
         if not is_database_exist:
-            database_cursor.execute("""CREATE TABLE logistics
+            database_cursor.execute("""CREATE TABLE vaccines
                                     (id INTEGER PRIMARY KEY,
-                                    name STRING NOT NULL,
-                                    count_sent INTEGER NOT NULL,
-                                    count_received INTEGER NOT NULL)""")
+                                    date DATE NOT NULL,
+                                    supplier INTEGER REFERENCES suppliers(id),
+                                    quantity INTEGER NOT NULL)""")
             database_cursor.execute("""CREATE TABLE suppliers
                                     (id INTEGER PRIMARY KEY,
                                     name STRING NOT NULL,
@@ -25,11 +25,11 @@ def tables_creation():
                                     location STRING NOT NULL,
                                     demand INTEGER NOT NULL,
                                     logistic INTEGER REFERENCES logistics(id))""")
-            database_cursor.execute("""CREATE TABLE vaccines
+            database_cursor.execute("""CREATE TABLE logistics
                                     (id INTEGER PRIMARY KEY,
-                                    date DATE NOT NULL,
-                                    supplier INTEGER REFERENCES suppliers(id),
-                                    quantity INTEGER NOT NULL)""")
+                                    name STRING NOT NULL,
+                                    count_sent INTEGER NOT NULL,
+                                    count_received INTEGER NOT NULL)""")
 
 
 def print_hi(name):
