@@ -33,7 +33,7 @@ class _Vaccines:
             UPDATE vaccines SET quantity = (?) WHERE id = (?)
             """, [vaccine_quantity_new_value, vaccine_id])
 
-    def find_by_supplier_id(self, vaccine_supplier):
+    def find_next_vaccine(self):
         c = self._conn.cursor()
         c.execute("""
             SELECT * FROM vaccines

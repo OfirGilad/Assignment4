@@ -9,6 +9,11 @@ from Dto import Vaccine
 import sqlite3
 
 
+def print_table(list_of_elements):
+    for element in list_of_elements:
+        print(element)
+
+
 class _Repository:
     def __init__(self, database_sars_cov_2_conn):
         self._conn = sqlite3.connect(database_sars_cov_2_conn)
@@ -54,17 +59,13 @@ class _Repository:
 
     def print_all(self):
         print("vaccines")
-        self.print_table(self._conn.execute("SELECT * FROM vaccines"))
+        print_table(self._conn.execute("SELECT * FROM vaccines"))
         print("suppliers")
-        self.print_table(self._conn.execute("SELECT * FROM suppliers"))
+        print_table(self._conn.execute("SELECT * FROM suppliers"))
         print("clinics")
-        self.print_table(self._conn.execute("SELECT * FROM clinics"))
+        print_table(self._conn.execute("SELECT * FROM clinics"))
         print("logistics")
-        self.print_table(self._conn.execute("SELECT * FROM logistics"))
-
-    def print_table(self, list_of_elements):
-        for element in list_of_elements:
-            print(element)
+        print_table(self._conn.execute("SELECT * FROM logistics"))
 
     def config_decode(self, config):
         is_first_line = True
@@ -127,9 +128,8 @@ class _Repository:
         logistic = self._logistics.find(clinic.logistic)
         new_count_sent = logistic.count_sent + amount
         self._logistics.update_count_sent(logistic.count_sent, new_count_sent, logistic.id)
-        supplier = self._suppliers.find_by_logistic(logistic.id)
         while amount > 0:
-            next_vaccine = self._vaccines.find_by_supplier_id(supplier.id)
+            next_vaccine = self._vaccines.find_next_vaccine()
             if amount >= next_vaccine.quantity:
                 self._vaccines.delete(next_vaccine.id, next_vaccine.quantity)
             else:
