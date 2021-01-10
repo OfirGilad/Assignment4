@@ -5,12 +5,14 @@ from Dto import Logistic
 
 
 class _Vaccines:
+    total_inventory = 0
+
     def __init__(self, conn):
         self._conn = conn
-        self._total_inventory = 0
+        _Vaccines._total_inventory = 0
 
     def insert(self, vaccine):
-        self._total_inventory = self._total_inventory + int(vaccine.quantity)
+        _Vaccines.total_inventory = _Vaccines.total_inventory + int(vaccine.quantity)
         
         self._conn.execute("""
             INSERT INTO vaccines (id, date, supplier, quantity) VALUES (?, ?, ?, ?)
@@ -26,7 +28,7 @@ class _Vaccines:
 
     def update_quantity(self, vaccine_id, vaccine_quantity_old_value, vaccine_quantity_new_value):
         quantity_to_add = vaccine_quantity_new_value - vaccine_quantity_old_value
-        self._total_inventory = self._total_inventory + quantity_to_add
+        _Vaccines.total_inventory = _Vaccines.total_inventory + quantity_to_add
 
         c = self._conn.cursor()
         c.execute("""
@@ -42,15 +44,11 @@ class _Vaccines:
         return Vaccine(*c.fetchone())
     
     def delete(self, vaccine_id, vaccine_quantity):
-        self._total_inventory = self._total_inventory - vaccine_quantity
+        _Vaccines.total_inventory = _Vaccines.total_inventory - vaccine_quantity
         
         self._conn.execute("""
                     DELETE FROM vaccines WHERE id = (?)
                     """, [vaccine_id])
-
-    @property
-    def total_inventory(self):
-        return self._total_inventory
 
 
 class _Suppliers:
@@ -80,12 +78,14 @@ class _Suppliers:
 
 
 class _Clinics:
+    total_demand = 0
+
     def __init__(self, conn):
         self._conn = conn
-        self._total_demand = 0
+        _Clinics.total_demand = 0
 
     def insert(self, clinic):
-        self._total_demand = self._total_demand + int(clinic.demand)
+        _Clinics.total_demand = _Clinics.total_demand + int(clinic.demand)
 
         self._conn.execute("""
             INSERT INTO clinics (id, location, demand, logistic) VALUES (?, ?, ?, ?)
@@ -109,27 +109,26 @@ class _Clinics:
 
     def update_demand(self, clinic_demand_old_value, clinic_demand_new_value, clinic_id):
         demand_to_add = clinic_demand_new_value - clinic_demand_old_value
-        self._total_demand = self._total_demand + demand_to_add
+        _Clinics.total_demand = _Clinics.total_demand + demand_to_add
 
         c = self._conn.cursor()
         c.execute("""
             UPDATE clinics SET demand = (?) WHERE id = (?)
             """, [clinic_demand_new_value, clinic_id])
 
-    @property
-    def total_demand(self):
-        return self._total_demand
-
 
 class _Logistics:
+    total_sent = 0
+    total_received = 0
+
     def __init__(self, conn):
         self._conn = conn
-        self._total_sent = 0
-        self._total_received = 0
+        _Logistics.total_sent = 0
+        _Logistics.total_received = 0
 
     def insert(self, logistic):
-        self._total_sent = self._total_sent + int(logistic.count_sent)
-        self._total_received = self._total_received + int(logistic.count_received)
+        _Logistics.total_sent = _Logistics.total_sent + int(logistic.count_sent)
+        _Logistics.total_received = _Logistics.total_received + int(logistic.count_received)
 
         self._conn.execute("""
             INSERT INTO logistics (id, name, count_sent, count_received) VALUES (?, ?, ?, ?)
@@ -145,7 +144,7 @@ class _Logistics:
 
     def update_count_sent(self, logistic_count_sent_old_value, logistic_count_sent_new_value, logistic_id):
         count_to_add = logistic_count_sent_new_value - logistic_count_sent_old_value
-        self._total_sent = self._total_sent + count_to_add
+        _Logistics.total_sent = _Logistics.total_sent + count_to_add
 
         c = self._conn.cursor()
         c.execute("""
@@ -154,17 +153,9 @@ class _Logistics:
 
     def update_count_received(self, logistic_count_received_old_value, logistic_count_received_new_value, logistic_id):
         count_to_add = logistic_count_received_new_value - logistic_count_received_old_value
-        self._total_received = self._total_received + count_to_add
+        _Logistics.total_received = _Logistics.total_received + count_to_add
 
         c = self._conn.cursor()
         c.execute("""
             UPDATE logistics SET count_received = (?) WHERE id = (?)
             """, [logistic_count_received_new_value, logistic_id])
-
-    @property
-    def total_sent(self):
-        return self._total_sent
-
-    @property
-    def total_received(self):
-        return self._total_received

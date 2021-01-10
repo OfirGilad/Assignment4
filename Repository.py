@@ -4,12 +4,8 @@ import sqlite3
 import atexit
 
 
-def print_table(list_of_elements):
-    for element in list_of_elements:
-        print(element)
-
-
 class _Repository:
+
     def __init__(self):
         self._conn = sqlite3.connect('database.db')
         self._logistics = _Logistics(self._conn)
@@ -61,13 +57,18 @@ class _Repository:
 
     def print_all(self):
         print("vaccines")
-        print_table(self._conn.execute("SELECT * FROM vaccines"))
+        self.print_table(self._conn.execute("SELECT * FROM vaccines"))
         print("suppliers")
-        print_table(self._conn.execute("SELECT * FROM suppliers"))
+        self.print_table(self._conn.execute("SELECT * FROM suppliers"))
         print("clinics")
-        print_table(self._conn.execute("SELECT * FROM clinics"))
+        self.print_table(self._conn.execute("SELECT * FROM clinics"))
         print("logistics")
-        print_table(self._conn.execute("SELECT * FROM logistics"))
+        self.print_table(self._conn.execute("SELECT * FROM logistics"))
+
+    @staticmethod
+    def print_table(list_of_elements):
+        for element in list_of_elements:
+            print(element)
 
     def config_decode(self, config):
         is_first_line = True

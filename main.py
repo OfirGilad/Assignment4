@@ -13,7 +13,6 @@ def main(args):
     repo.print_all()
     orders_execute = _OrderExecution(orders, output)
     orders_execute.execute_orders()
-    print("")
     print("after orders execution:")
     repo.print_all()
 
