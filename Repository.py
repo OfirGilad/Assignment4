@@ -1,12 +1,7 @@
-from Dao import _Logistics
-from Dao import _Suppliers
-from Dao import _Clinics
-from Dao import _Vaccines
-from Dto import Logistic
-from Dto import Supplier
-from Dto import Clinic
-from Dto import Vaccine
+from Dao import _Logistics, _Suppliers, _Clinics, _Vaccines
+from Dto import Logistic, Supplier, Clinic, Vaccine
 import sqlite3
+import atexit
 
 
 def print_table(list_of_elements):
@@ -15,8 +10,8 @@ def print_table(list_of_elements):
 
 
 class _Repository:
-    def __init__(self, database_sars_cov_2_conn):
-        self._conn = sqlite3.connect(database_sars_cov_2_conn)
+    def __init__(self):
+        self._conn = sqlite3.connect('database.db')
         self._logistics = _Logistics(self._conn)
         self._suppliers = _Suppliers(self._conn)
         self._clinics = _Clinics(self._conn)
@@ -24,10 +19,17 @@ class _Repository:
         self._next_vaccine_index = 1
 
     def close(self):
+        self._next_vaccine_index = 1
         self._conn.commit()
         self._conn.close()
 
     def create_tables(self):
+        self._conn.executescript("""
+        DROP TABLE IF EXISTS 'logistics';
+        DROP TABLE IF EXISTS 'suppliers';
+        DROP TABLE IF EXISTS 'clinics';
+        DROP TABLE IF EXISTS 'vaccines';
+        """)
         self._conn.executescript("""
         CREATE TABLE logistics (
             id INTEGER PRIMARY KEY,
@@ -69,7 +71,7 @@ class _Repository:
 
     def config_decode(self, config):
         is_first_line = True
-        with open(config) as input_file:
+        with open(config, 'r') as input_file:
             for line in input_file:
                 text_line = line.split(",")
                 if is_first_line:
@@ -96,51 +98,22 @@ class _Repository:
                     self._logistics.insert(temp)
                     logistics_length = logistics_length - 1
 
-    def execute_orders(self, orders, output):
-        with open(orders) as input_file:
-            for line in input_file:
-                text_line = line.split(",")
-                if len(text_line) == 3:
-                    self.receive_shipment_order(text_line, output)
-                else:
-                    self.send_shipment_order(text_line, output)
+    def return_logistics(self):
+        return self._logistics
 
-    def receive_shipment_order(self, order_line, output):
-        name = order_line[0]
-        amount = int(order_line[1])
-        length = len(order_line[2])
-        date = order_line[2][0:length - 1]
-        supplier = self._suppliers.find_by_name(name)
-        vaccine_to_insert = Vaccine(self._next_vaccine_index, date, supplier.id, amount)
-        self._next_vaccine_index = self._next_vaccine_index + 1
-        self._vaccines.insert(vaccine_to_insert)
-        logistic = self._logistics.find(supplier.logistic)
-        new_count_received = logistic.count_received + amount
-        self._logistics.update_count_received(logistic.count_received, new_count_received, logistic.id)
-        self.print_to_output(output)
+    def return_suppliers(self):
+        return self._suppliers
 
-    def send_shipment_order(self, order_line, output):
-        location = order_line[0]
-        amount = int(order_line[1])
-        clinic = self._clinics.find_by_location(location)
-        new_demand = clinic.demand - amount
-        self._clinics.update_demand(clinic.demand, new_demand, clinic.id)
-        logistic = self._logistics.find(clinic.logistic)
-        new_count_sent = logistic.count_sent + amount
-        self._logistics.update_count_sent(logistic.count_sent, new_count_sent, logistic.id)
-        while amount > 0:
-            next_vaccine = self._vaccines.find_next_vaccine()
-            if amount >= next_vaccine.quantity:
-                self._vaccines.delete(next_vaccine.id, next_vaccine.quantity)
-            else:
-                new_quantity = next_vaccine.quantity - amount
-                self._vaccines.update_quantity(next_vaccine.id, next_vaccine.quantity, new_quantity)
-            amount = amount - next_vaccine.quantity
-        self.print_to_output(output)
+    def return_clinics(self):
+        return self._clinics
 
-    def print_to_output(self, output):
-        with open(output, "a") as output_file:
-            output_file.write(str(self._vaccines.total_inventory) + ",")
-            output_file.write(str(self._clinics.total_demand) + ",")
-            output_file.write(str(self._logistics.total_received) + ",")
-            output_file.write(str(self._logistics.total_sent) + "\n")
+    def return_vaccines(self):
+        return self._vaccines
+
+    def return_next_vaccine_index(self):
+        return self._next_vaccine_index
+
+
+# the repository singleton
+repo = _Repository()
+atexit.register(repo.close)
