@@ -4,6 +4,7 @@ import sqlite3
 import atexit
 
 
+# The Repository
 class _Repository:
 
     def __init__(self):
@@ -94,25 +95,56 @@ class _Repository:
                     temp = Clinic(text_line[0], text_line[1], text_line[2], text_line[3])
                     self._clinics.insert(temp)
                     clinics_length = clinics_length - 1
-                else:
+                elif logistics_length > 0:
                     temp = Logistic(text_line[0], text_line[1], text_line[2], text_line[3])
                     self._logistics.insert(temp)
                     logistics_length = logistics_length - 1
+                else:
+                    print("ERROR")
 
-    def return_logistics(self):
-        return self._logistics
+    def find_supplier_by_name(self, name):
+        return self._suppliers.find_by_name(name)
 
-    def return_suppliers(self):
-        return self._suppliers
+    def insert_next_vaccine(self, date, supplier_id, amount):
+        vaccine_to_insert = Vaccine(self._next_vaccine_index, date, supplier_id, amount)
+        self._next_vaccine_index = self._next_vaccine_index + 1
+        self._vaccines.insert(vaccine_to_insert)
 
-    def return_clinics(self):
-        return self._clinics
+    def find_logistic_by_id(self, logistic):
+        return self._logistics.find(logistic)
 
-    def return_vaccines(self):
-        return self._vaccines
+    def update_count_received(self, old_count_received, new_count_received, logistic_id):
+        self._logistics.update_count_received(old_count_received, new_count_received, logistic_id)
 
-    def return_next_vaccine_index(self):
-        return self._next_vaccine_index
+    def find_by_location_clinic(self, location):
+        return self._clinics.find_by_location(location)
+
+    def update_demand(self, old_demand, new_demand, clinic_id):
+        self._clinics.update_demand(old_demand, new_demand, clinic_id)
+
+    def update_count_sent(self, old_count_sent, new_count_sent, logistic_id):
+        self._logistics.update_count_sent(old_count_sent, new_count_sent, logistic_id)
+
+    def find_next_vaccine(self):
+        return self._vaccines.find_next_vaccine()
+
+    def delete_vaccine(self, vaccine_id, next_vaccine_quantity):
+        self._vaccines.delete(vaccine_id, next_vaccine_quantity)
+
+    def update_quantity(self, vaccine_id, old_quantity, new_quantity):
+        self._vaccines.update_quantity(vaccine_id, old_quantity, new_quantity)
+
+    def total_inventory(self):
+        return self._vaccines.total_inventory
+
+    def total_demand(self):
+        return self._clinics.total_demand
+
+    def total_received(self):
+        return self._logistics.total_received
+
+    def total_sent(self):
+        return self._logistics.total_sent
 
 
 # the repository singleton
