@@ -102,16 +102,16 @@ class _Repository:
                 else:
                     print("ERROR")
 
-    def find_supplier_by_name(self, name):
-        return self._suppliers.find_by_name(name)
+    def find_supplier_by_name(self, supplier_name):
+        return self._suppliers.find_by_name(supplier_name)
 
     def insert_next_vaccine(self, date, supplier_id, amount):
         vaccine_to_insert = Vaccine(self._next_vaccine_index, date, supplier_id, amount)
         self._next_vaccine_index = self._next_vaccine_index + 1
         self._vaccines.insert(vaccine_to_insert)
 
-    def find_logistic_by_id(self, logistic):
-        return self._logistics.find(logistic)
+    def find_logistic_by_id(self, logistic_id):
+        return self._logistics.find(logistic_id)
 
     def update_count_received(self, old_count_received, new_count_received, logistic_id):
         self._logistics.update_count_received(old_count_received, new_count_received, logistic_id)
