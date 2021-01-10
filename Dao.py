@@ -78,14 +78,6 @@ class _Suppliers:
 
         return Supplier(*c.fetchone())
 
-    def find_by_logistic(self, supplier_logistic):
-        c = self._conn.cursor()
-        c.execute("""
-                    SELECT id, name, logistic FROM suppliers WHERE logistic = ?
-                    """, [supplier_logistic])
-
-        return Supplier(*c.fetchone())
-
 
 class _Clinics:
     def __init__(self, conn):
