@@ -86,7 +86,9 @@ class _Repository:
                     temp = Vaccine(text_line[0], text_line[1], text_line[2], text_line[3])
                     self._vaccines.insert(temp)
                     vaccines_length = vaccines_length - 1
-                    self._next_vaccine_index = self._next_vaccine_index + 1
+                    if int(temp.id) >= self._next_vaccine_index:
+                        self._next_vaccine_index = int(temp.id)
+                        self._next_vaccine_index = self._next_vaccine_index + 1
                 elif suppliers_length > 0:
                     temp = Supplier(text_line[0], text_line[1], text_line[2])
                     self._suppliers.insert(temp)
@@ -101,6 +103,7 @@ class _Repository:
                     logistics_length = logistics_length - 1
                 else:
                     print("ERROR")
+        self._conn.executescript("SELECT * FROM vaccines ORDER BY id DESC")
 
     def find_supplier_by_name(self, supplier_name):
         return self._suppliers.find_by_name(supplier_name)
