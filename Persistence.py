@@ -58,7 +58,7 @@ class _Repository:
 
     def print_all(self):
         print("vaccines")
-        self.print_table(self._conn.execute("SELECT * FROM vaccines"))
+        self.print_table(self._conn.execute("SELECT * FROM vaccines ORDER BY date ASC"))
         print("suppliers")
         self.print_table(self._conn.execute("SELECT * FROM suppliers"))
         print("clinics")
@@ -103,7 +103,6 @@ class _Repository:
                     logistics_length = logistics_length - 1
                 else:
                     print("ERROR")
-        self._conn.executescript("SELECT * FROM vaccines ORDER BY id DESC")
 
     def find_supplier_by_name(self, supplier_name):
         return self._suppliers.find_by_name(supplier_name)

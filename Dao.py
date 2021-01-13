@@ -38,7 +38,7 @@ class _Vaccines:
     def find_next_vaccine(self):
         c = self._conn.cursor()
         c.execute("""
-            SELECT * FROM vaccines
+            SELECT * FROM vaccines ORDER BY date ASC
             """)
 
         return Vaccine(*c.fetchone())
